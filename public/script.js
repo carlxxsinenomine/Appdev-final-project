@@ -1,3 +1,6 @@
+// === Configuration ===
+const API_BASE_URL = 'http://localhost:3000/api';
+
 // === Data Storage ===
 let myLibrary = [];
 let currentView = 'dashboard'; // 'dashboard' or 'favorites'
@@ -5,30 +8,16 @@ let currentView = 'dashboard'; // 'dashboard' or 'favorites'
 // === Book Class ===
 class Book {
     constructor(title, author, isbn, description) {
-        this.id = Date.now() + Math.random().toString(16).slice(2);
         this.title = title;
         this.author = author;
         this.isbn = isbn || 'N/A';
         this.description = description || 'No description provided.';
-        this.isCheckedOut = false;
-        this.isFavorite = false; // New Property
-        this.history = [];
+        this.status = 'available';
+        this.isFavorite = false;
+        this.checkedOutBy = null;
+        this.checkedOutDate = null;
+        this.borrowHistory = [];
         this.createdAt = new Date();
-    }
-
-    toggleStatus() {
-        this.isCheckedOut = !this.isCheckedOut;
-        const action = this.isCheckedOut ? 'Checked Out' : 'Returned';
-        this.addToHistory(action);
-    }
-
-    toggleFavorite() {
-        this.isFavorite = !this.isFavorite;
-    }
-
-    addToHistory(action) {
-        const log = { action: action, date: new Date().toLocaleString() };
-        this.history.unshift(log);
     }
 }
 
@@ -57,24 +46,151 @@ const navSettings = document.getElementById('nav-settings');
 const navLogout = document.getElementById('nav-logout');
 const navItems = document.querySelectorAll('.nav-item');
 
+// === API Functions ===
+async function fetchBooks() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/books`);
+        if (!response.ok) throw new Error('Failed to fetch books');
+        const books = await response.json();
+        myLibrary = books;
+        return books;
+    } catch (err) {
+        console.error('Error fetching books:', err);
+        showNotification('Failed to load books from database', 'error');
+        return [];
+    }
+}
+
+async function addBookToDB(bookData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/books`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookData)
+        });
+        if (!response.ok) throw new Error('Failed to add book');
+        const newBook = await response.json();
+        showNotification('Book added successfully!', 'success');
+        return newBook;
+    } catch (err) {
+        console.error('Error adding book:', err);
+        showNotification('Failed to add book to database', 'error');
+        return null;
+    }
+}
+
+async function checkoutBook(id, borrower = 'Current User') {
+    try {
+        const response = await fetch(`${API_BASE_URL}/books/${id}/checkout`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ borrower })
+        });
+        if (!response.ok) throw new Error('Failed to checkout book');
+        const updatedBook = await response.json();
+        showNotification('Book checked out successfully!', 'success');
+        return updatedBook;
+    } catch (err) {
+        console.error('Error checking out book:', err);
+        showNotification('Failed to checkout book', 'error');
+        return null;
+    }
+}
+
+async function checkinBook(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/books/${id}/checkin`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) throw new Error('Failed to checkin book');
+        const updatedBook = await response.json();
+        showNotification('Book returned successfully!', 'success');
+        return updatedBook;
+    } catch (err) {
+        console.error('Error checking in book:', err);
+        showNotification('Failed to return book', 'error');
+        return null;
+    }
+}
+
+async function deleteBookFromDB(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/books/${id}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to delete book');
+        showNotification('Book deleted successfully!', 'success');
+        return true;
+    } catch (err) {
+        console.error('Error deleting book:', err);
+        showNotification('Failed to delete book', 'error');
+        return false;
+    }
+}
+
+async function fetchBookHistory(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/books/${id}/history`);
+        if (!response.ok) throw new Error('Failed to fetch history');
+        return await response.json();
+    } catch (err) {
+        console.error('Error fetching history:', err);
+        showNotification('Failed to load history', 'error');
+        return null;
+    }
+}
+
+async function clearBookHistory(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/books/${id}/history`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to clear history');
+        showNotification('History cleared successfully!', 'success');
+        return await response.json();
+    } catch (err) {
+        console.error('Error clearing history:', err);
+        showNotification('Failed to clear history', 'error');
+        return null;
+    }
+}
+
+// === Notification System ===
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
 
 // === Initialization ===
-function init() {
-    addDummyData();
+async function init() {
+    showNotification('Loading books from database...', 'info');
+    await fetchBooks();
     renderBooks();
     updateStats();
     setupNavigation();
-}
-
-function addDummyData() {
-    const b1 = new Book("The Psychology of Money", "Morgan Housel", "9780857197689", "Timeless lessons on wealth.");
-    const b2 = new Book("Atomic Habits", "James Clear", "9780735211292", "Build good habits & break bad ones.");
-    const b3 = new Book("Deep Work", "Cal Newport", "9781455586691", "Rules for focused success.");
-    
-    b3.toggleStatus(); // Make one checked out
-    b1.toggleFavorite(); // Make one favorite
-
-    myLibrary.push(b1, b2, b3);
 }
 
 // === Navigation Logic ===
@@ -113,8 +229,8 @@ function setupNavigation() {
     navLogout.addEventListener('click', (e) => {
         e.preventDefault();
         if(confirm('Are you sure you want to logout?')) {
-            alert('Logging out...');
-            location.reload(); // Simulates logout
+            showNotification('Logging out...', 'info');
+            setTimeout(() => location.reload(), 1000);
         }
     });
 }
@@ -130,23 +246,20 @@ function switchView(viewName) {
     // Reset UI Visibility
     mainView.classList.remove('hidden');
     settingsView.classList.add('hidden');
-    statsSection.style.display = 'grid'; // Restore grid
-    formSection.style.display = 'block'; // Restore block
+    statsSection.style.display = 'grid';
+    formSection.style.display = 'block';
     collectionTitle.innerHTML = '<i class="ri-book-open-line"></i> Book Collection';
 
     if (viewName === 'dashboard') {
-        // Standard view (handled by reset above)
         renderBooks();
     } 
     else if (viewName === 'favorites') {
-        // Hide Stats and Form, only show List
         statsSection.style.display = 'none';
         formSection.style.display = 'none';
         collectionTitle.innerHTML = '<i class="ri-heart-fill" style="color:#ef4444"></i> Favorite Books';
         renderBooks();
     } 
     else if (viewName === 'settings') {
-        // Hide Main, Show Settings
         mainView.classList.add('hidden');
         settingsView.classList.remove('hidden');
     }
@@ -155,7 +268,7 @@ function switchView(viewName) {
 // === Core Functions ===
 function updateStats() {
     const total = myLibrary.length;
-    const checkedOut = myLibrary.filter(book => book.isCheckedOut).length;
+    const checkedOut = myLibrary.filter(book => book.status === 'checked-out').length;
     const available = total - checkedOut;
 
     totalBooksEl.textContent = total;
@@ -176,8 +289,8 @@ function renderBooks() {
         
         // 2. Status Filter
         let matchesStatus = true;
-        if (statusFilter === 'available') matchesStatus = !book.isCheckedOut;
-        if (statusFilter === 'checked-out') matchesStatus = book.isCheckedOut;
+        if (statusFilter === 'available') matchesStatus = book.status === 'available';
+        if (statusFilter === 'checked-out') matchesStatus = book.status === 'checked-out';
 
         // 3. View Filter (Favorites)
         let matchesView = true;
@@ -197,14 +310,14 @@ function renderBooks() {
 
     filteredBooks.forEach(book => {
         const card = document.createElement('div');
-        card.className = `book-card ${book.isCheckedOut ? 'checked-out' : 'available'}`;
+        card.className = `book-card ${book.status === 'checked-out' ? 'checked-out' : 'available'}`;
         
-        const statusBadge = book.isCheckedOut 
+        const statusBadge = book.status === 'checked-out'
             ? '<span class="status-badge checked-out">Checked Out</span>' 
             : '<span class="status-badge available">Available</span>';
 
-        const btnClass = book.isCheckedOut ? 'btn-checkin' : 'btn-checkout';
-        const btnText = book.isCheckedOut ? 'Return' : 'Check Out';
+        const btnClass = book.status === 'checked-out' ? 'btn-checkin' : 'btn-checkout';
+        const btnText = book.status === 'checked-out' ? 'Return' : 'Check Out';
         
         // Heart Icon Logic
         const heartIcon = book.isFavorite ? 'ri-heart-fill' : 'ri-heart-line';
@@ -218,18 +331,20 @@ function renderBooks() {
             <div class="book-author">by ${book.author}</div>
             <div class="book-isbn">ISBN: ${book.isbn}</div>
             <div class="book-description">${book.description}</div>
+            ${book.checkedOutBy ? `<div class="book-borrower"><strong>Borrowed by:</strong> ${book.checkedOutBy}</div>` : ''}
+            ${book.checkedOutDate ? `<div class="book-date"><strong>Checked out:</strong> ${book.checkedOutDate}</div>` : ''}
             
             <div class="book-actions">
-                <button class="${btnClass}" onclick="toggleBookStatus('${book.id}')">
+                <button class="${btnClass}" onclick="toggleBookStatus('${book._id}')">
                     ${btnText}
                 </button>
-                <button class="btn-fav" onclick="toggleFavorite('${book.id}')" style="${heartColor}">
+                <button class="btn-fav" onclick="toggleFavorite('${book._id}')" style="${heartColor}">
                     <i class="${heartIcon}"></i>
                 </button>
-                <button class="btn-history" onclick="viewHistory('${book.id}')">
+                <button class="btn-history" onclick="viewHistory('${book._id}')">
                     <i class="ri-history-line"></i>
                 </button>
-                <button class="btn-delete" onclick="deleteBook('${book.id}')">
+                <button class="btn-delete" onclick="deleteBook('${book._id}')">
                     <i class="ri-delete-bin-line"></i>
                 </button>
             </div>
@@ -239,60 +354,81 @@ function renderBooks() {
 }
 
 // === Event Listeners ===
-addBookForm.addEventListener('submit', (e) => {
+addBookForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const title = document.getElementById('bookTitle').value;
-    const author = document.getElementById('bookAuthor').value;
-    const isbn = document.getElementById('bookISBN').value;
-    const desc = document.getElementById('bookDescription').value;
+    
+    const bookData = {
+        title: document.getElementById('bookTitle').value,
+        author: document.getElementById('bookAuthor').value,
+        isbn: document.getElementById('bookISBN').value,
+        description: document.getElementById('bookDescription').value
+    };
 
-    const newBook = new Book(title, author, isbn, desc);
-    newBook.addToHistory('Added to library');
-    myLibrary.push(newBook);
-    
-    addBookForm.reset();
-    renderBooks();
-    updateStats();
-    
-    // If in favorites view, switch back to dashboard to see the new book
-    if (currentView === 'favorites') navDashboard.click();
+    const newBook = await addBookToDB(bookData);
+    if (newBook) {
+        await fetchBooks();
+        addBookForm.reset();
+        renderBooks();
+        updateStats();
+        
+        // If in favorites view, switch back to dashboard to see the new book
+        if (currentView === 'favorites') navDashboard.click();
+    }
 });
 
 searchInput.addEventListener('input', renderBooks);
 filterStatus.addEventListener('change', renderBooks);
 
 // === Global Functions ===
-window.toggleBookStatus = (id) => {
-    const book = myLibrary.find(b => b.id === id);
-    if (book) {
-        book.toggleStatus();
-        renderBooks();
-        updateStats();
+window.toggleBookStatus = async (id) => {
+    const book = myLibrary.find(b => b._id === id);
+    if (!book) return;
+    
+    if (book.status === 'available') {
+        await checkoutBook(id);
+    } else {
+        await checkinBook(id);
     }
+    
+    await fetchBooks();
+    renderBooks();
+    updateStats();
 };
 
 window.toggleFavorite = (id) => {
-    const book = myLibrary.find(b => b.id === id);
+    const book = myLibrary.find(b => b._id === id);
     if (book) {
-        book.toggleFavorite();
-        renderBooks(); // Re-render to update heart icon
+        book.isFavorite = !book.isFavorite;
+        renderBooks();
+        // Note: This is client-side only. To persist, you'd need to add a backend endpoint
+        showNotification(book.isFavorite ? 'Added to favorites' : 'Removed from favorites', 'info');
     }
 };
 
-window.deleteBook = (id) => {
-    if(confirm('Delete this book?')) {
-        myLibrary = myLibrary.filter(b => b.id !== id);
-        renderBooks();
-        updateStats();
+window.deleteBook = async (id) => {
+    if(confirm('Delete this book from the database?')) {
+        const success = await deleteBookFromDB(id);
+        if (success) {
+            await fetchBooks();
+            renderBooks();
+            updateStats();
+        }
     }
 };
 
-window.resetSystem = () => {
-    if(confirm('This will delete all books. Are you sure?')) {
-        myLibrary = [];
+window.resetSystem = async () => {
+    if(confirm('This will delete ALL books from the database. Are you sure?')) {
+        showNotification('Deleting all books...', 'info');
+        
+        // Delete all books one by one
+        for (const book of myLibrary) {
+            await deleteBookFromDB(book._id);
+        }
+        
+        await fetchBooks();
         renderBooks();
         updateStats();
-        alert('System Reset Complete');
+        showNotification('System Reset Complete', 'success');
     }
 };
 
@@ -302,31 +438,36 @@ const closeBtn = document.querySelector('.close-modal');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 let currentBookId = null;
 
-window.viewHistory = (id) => {
-    const book = myLibrary.find(b => b.id === id);
-    if (!book) return;
+window.viewHistory = async (id) => {
     currentBookId = id;
-    document.getElementById('modalBookTitle').textContent = book.title;
-    document.getElementById('modalBookAuthor').textContent = `by ${book.author}`;
-    renderHistoryList(book);
-    modal.style.display = 'flex';
+    const historyData = await fetchBookHistory(id);
+    
+    if (historyData) {
+        document.getElementById('modalBookTitle').textContent = historyData.title;
+        document.getElementById('modalBookAuthor').textContent = `by ${historyData.author}`;
+        renderHistoryList(historyData.history);
+        modal.style.display = 'flex';
+    }
 };
 
-function renderHistoryList(book) {
+function renderHistoryList(history) {
     const list = document.getElementById('modalHistoryList');
     list.innerHTML = '';
-    if (book.history.length === 0) {
-        list.innerHTML = '<p class="no-history">No history available.</p>';
+    
+    if (!history || history.length === 0) {
+        list.innerHTML = '<p class="no-history">No borrowing history available.</p>';
         return;
     }
-    book.history.forEach((log, index) => {
+    
+    history.forEach((log, index) => {
         const item = document.createElement('div');
         item.className = 'history-item';
         item.innerHTML = `
-            <div class="history-number">#${book.history.length - index}</div>
+            <div class="history-number">#${history.length - index}</div>
             <div class="history-details">
-                <div><strong>Action:</strong> ${log.action}</div>
-                <div><strong>Date:</strong> ${log.date}</div>
+                <div><strong>Borrower:</strong> ${log.borrower}</div>
+                <div><strong>Checked Out:</strong> ${log.checkoutDate}</div>
+                <div><strong>Returned:</strong> ${log.returnDate}</div>
             </div>`;
         list.appendChild(item);
     });
@@ -334,12 +475,13 @@ function renderHistoryList(book) {
 
 closeBtn.onclick = () => modal.style.display = 'none';
 window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-clearHistoryBtn.onclick = () => {
-    const book = myLibrary.find(b => b.id === currentBookId);
-    if (book) {
-        book.history = [];
-        book.addToHistory('History cleared');
-        renderHistoryList(book);
+
+clearHistoryBtn.onclick = async () => {
+    if (confirm('Clear all borrowing history for this book?')) {
+        const result = await clearBookHistory(currentBookId);
+        if (result) {
+            renderHistoryList(result.history);
+        }
     }
 };
 
@@ -349,10 +491,8 @@ const body = document.body;
 const icon = themeToggleBtn.querySelector('i');
 
 themeToggleBtn.addEventListener('click', () => {
-    // Toggle the class
     body.classList.toggle('light-mode');
     
-    // Switch the Icon
     if (body.classList.contains('light-mode')) {
         icon.classList.remove('ri-sun-line');
         icon.classList.add('ri-moon-line');
@@ -361,6 +501,39 @@ themeToggleBtn.addEventListener('click', () => {
         icon.classList.add('ri-sun-line');
     }
 });
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+    
+    .book-borrower, .book-date {
+        font-size: 0.85em;
+        color: #94a3b8;
+        margin-top: 5px;
+    }
+`;
+document.head.appendChild(style);
 
 // Run Init
 init();
