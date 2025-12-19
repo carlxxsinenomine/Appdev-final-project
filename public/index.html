@@ -132,26 +132,18 @@
                 </div>
 
                 <div id="settingsView" class="hidden">
-                    <div class="settings-panel">
-                        <h2><i class="ri-settings-4-line"></i> System Settings</h2>
-                        
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h3>Data Management</h3>
-                                <p>Clear all books and reset the application to default state.</p>
-                            </div>
-                            <button class="btn-delete" onclick="resetSystem()">Reset System</button>
-                        </div>
-
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h3>Export Data</h3>
-                                <p>Download your library data as a JSON file.</p>
-                            </div>
-                            <button class="btn-checkin" onclick="alert('Export feature coming soon!')">Export JSON</button>
-                        </div>
-                    </div>
-                </div>
+    <div class="settings-panel">
+        <h2><i class="ri-settings-4-line"></i> System Settings</h2>
+        
+        <div class="setting-item">
+            <div class="setting-info">
+                <h3>Reset Library</h3>
+                <p>Clear all books and local data. This cannot be undone.</p>
+            </div>
+            <button class="btn-delete" onclick="resetSystem()">
+                <i class="ri-delete-bin-line"></i> Reset System
+            </button>
+        </div>
 
             </div>
         </main>
