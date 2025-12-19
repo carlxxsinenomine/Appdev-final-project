@@ -1,28 +1,28 @@
-# 📚 BookBase - Library Management System
+# BookBase - Library Management System
 **BookBase** is a full-stack web application designed to manage book collections efficiently. It features a modern, responsive user interface with real-time database interactions, allowing users to track available books, manage borrowing history, and maintain a personal list of favorites.
 
 ---
 
-## 🚀 Features
+##  Features
 
-### 🖥️ User Interface
+###  User Interface
 - **Dashboard Overview:** Real-time statistics on total, available, and checked-out books.
 - **Dark/Light Mode:** Toggle between a sleek dark theme and a clean light theme (persisted in local storage).
 - **Responsive Design:** Optimized for both desktop and mobile viewing with a collapsible sidebar layout.
 
-### 📖 Library Management
+###  Library Management
 - **Inventory Control:** Add, remove, and delete books from the database.
 - **Check-In/Check-Out:** Toggle book status with a single click and track who borrowed it.
 - **Borrowing History:** View a detailed log of every action (checkout/return dates) for specific books.
 
-### 🔍 Search & Organization
+###  Search & Organization
 - **Instant Search:** Filter books by title, author, or ISBN in real-time.
 - **Smart Filters:** Sort the collection by "Available" or "Checked Out" status.
 - **Favorites System:** "Heart" your favorite books to save them to a dedicated view (persisted in MongoDB).
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 **Frontend:**
 * HTML5, CSS3 (Custom Variables for Theming)
@@ -38,7 +38,7 @@
 
 ---
 
-## ⚙️ Installation & Setup
+##  Installation & Setup
 
 Follow these steps to run the project locally.
 
