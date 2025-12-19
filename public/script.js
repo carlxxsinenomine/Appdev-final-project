@@ -3,23 +3,7 @@ const API_BASE_URL = 'http://localhost:3000/api';
 
 // === Data Storage ===
 let myLibrary = [];
-let currentView = 'dashboard'; // 'dashboard' or 'favorites'
-
-// === Book Class ===
-class Book {
-    constructor(title, author, isbn, description) {
-        this.title = title;
-        this.author = author;
-        this.isbn = isbn || 'N/A';
-        this.description = description || 'No description provided.';
-        this.status = 'available';
-        this.isFavorite = false;
-        this.checkedOutBy = null;
-        this.checkedOutDate = null;
-        this.borrowHistory = [];
-        this.createdAt = new Date();
-    }
-}
+let currentView = 'dashboard'; // 'dashboard', 'library', 'favorites', 'settings'
 
 // === DOM Elements ===
 const mainView = document.getElementById('mainView');
@@ -27,6 +11,8 @@ const settingsView = document.getElementById('settingsView');
 const statsSection = document.getElementById('statsSection');
 const formSection = document.getElementById('formSection');
 const collectionTitle = document.getElementById('collectionTitle');
+// We need this to change the layout columns
+const dashboardGrid = document.querySelector('.dashboard-grid'); 
 
 const bookList = document.getElementById('bookList');
 const addBookForm = document.getElementById('addBookForm');
@@ -46,7 +32,7 @@ const navSettings = document.getElementById('nav-settings');
 const navLogout = document.getElementById('nav-logout');
 const navItems = document.querySelectorAll('.nav-item');
 
-// === API Functions ===
+// === API Functions (Database Logic Preserved) ===
 async function fetchBooks() {
     try {
         const response = await fetch(`${API_BASE_URL}/books`);
@@ -158,26 +144,16 @@ async function clearBookHistory(id) {
 
 // === Notification System ===
 function showNotification(message, type = 'info') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
     notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
+        position: fixed; top: 20px; right: 20px; padding: 15px 20px;
         background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
+        color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        z-index: 10000; animation: slideIn 0.3s ease;
     `;
-    
     document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => notification.remove(), 300);
@@ -196,29 +172,28 @@ async function init() {
 // === Navigation Logic ===
 function setupNavigation() {
     
-    // 1. Dashboard: Show All
+    // 1. Dashboard: Show Stats + Form + List (2 Columns)
     navDashboard.addEventListener('click', (e) => {
         e.preventDefault();
         setActiveNav(navDashboard);
         switchView('dashboard');
     });
 
-    // 2. My Library: Scroll to List
+    // 2. My Library: Show ONLY List (Full Width)
     navLibrary.addEventListener('click', (e) => {
         e.preventDefault();
         setActiveNav(navLibrary);
-        switchView('dashboard');
-        document.getElementById('librarySection').scrollIntoView({ behavior: 'smooth' });
+        switchView('library'); // Change view name
     });
 
-    // 3. Favorites: Filter List, Hide Form/Stats
+    // 3. Favorites: Show Only Favorites (Full Width)
     navFavorites.addEventListener('click', (e) => {
         e.preventDefault();
         setActiveNav(navFavorites);
         switchView('favorites');
     });
 
-    // 4. Settings: Show Settings Panel
+    // 4. Settings
     navSettings.addEventListener('click', (e) => {
         e.preventDefault();
         setActiveNav(navSettings);
@@ -240,22 +215,46 @@ function setActiveNav(activeItem) {
     activeItem.classList.add('active');
 }
 
+// === UPDATED VIEW LOGIC ===
 function switchView(viewName) {
     currentView = viewName;
 
-    // Reset UI Visibility
+    // Default State: Show Main, Hide Settings
     mainView.classList.remove('hidden');
     settingsView.classList.add('hidden');
-    statsSection.style.display = 'grid';
-    formSection.style.display = 'block';
+    
+    // Default Title
     collectionTitle.innerHTML = '<i class="ri-book-open-line"></i> Book Collection';
 
     if (viewName === 'dashboard') {
+        // Show Stats & Form
+        statsSection.style.display = 'grid';
+        formSection.style.display = 'block';
+        
+        // Restore 2-Column Grid
+        if(dashboardGrid) dashboardGrid.style.gridTemplateColumns = '350px 1fr';
+        
         renderBooks();
     } 
-    else if (viewName === 'favorites') {
+    else if (viewName === 'library') {
+        // Hide Stats & Form
         statsSection.style.display = 'none';
         formSection.style.display = 'none';
+        
+        // 1-Column Grid (Full Width)
+        if(dashboardGrid) dashboardGrid.style.gridTemplateColumns = '1fr';
+        
+        collectionTitle.innerHTML = '<i class="ri-book-2-line"></i> My Full Library';
+        renderBooks();
+    }
+    else if (viewName === 'favorites') {
+        // Hide Stats & Form
+        statsSection.style.display = 'none';
+        formSection.style.display = 'none';
+        
+        // 1-Column Grid
+        if(dashboardGrid) dashboardGrid.style.gridTemplateColumns = '1fr';
+        
         collectionTitle.innerHTML = '<i class="ri-heart-fill" style="color:#ef4444"></i> Favorite Books';
         renderBooks();
     } 
@@ -319,9 +318,9 @@ function renderBooks() {
         const btnClass = book.status === 'checked-out' ? 'btn-checkin' : 'btn-checkout';
         const btnText = book.status === 'checked-out' ? 'Return' : 'Check Out';
         
-        // Heart Icon Logic
+        // === FIXED HEART LOGIC: Use Classes, not Inline Styles ===
         const heartIcon = book.isFavorite ? 'ri-heart-fill' : 'ri-heart-line';
-        const heartColor = book.isFavorite ? 'color: #ef4444;' : 'color: white;';
+        const favClass = book.isFavorite ? 'is-favorite' : '';
 
         card.innerHTML = `
             <div class="book-header">
@@ -338,9 +337,11 @@ function renderBooks() {
                 <button class="${btnClass}" onclick="toggleBookStatus('${book._id}')">
                     ${btnText}
                 </button>
-                <button class="btn-fav" onclick="toggleFavorite('${book._id}')" style="${heartColor}">
+                
+                <button class="btn-fav ${favClass}" onclick="toggleFavorite('${book._id}')">
                     <i class="${heartIcon}"></i>
                 </button>
+                
                 <button class="btn-history" onclick="viewHistory('${book._id}')">
                     <i class="ri-history-line"></i>
                 </button>
@@ -371,8 +372,7 @@ addBookForm.addEventListener('submit', async (e) => {
         renderBooks();
         updateStats();
         
-        // If in favorites view, switch back to dashboard to see the new book
-        if (currentView === 'favorites') navDashboard.click();
+        if (currentView === 'favorites' || currentView === 'library') navDashboard.click();
     }
 });
 
@@ -400,7 +400,6 @@ window.toggleFavorite = (id) => {
     if (book) {
         book.isFavorite = !book.isFavorite;
         renderBooks();
-        // Note: This is client-side only. To persist, you'd need to add a backend endpoint
         showNotification(book.isFavorite ? 'Added to favorites' : 'Removed from favorites', 'info');
     }
 };
@@ -419,12 +418,9 @@ window.deleteBook = async (id) => {
 window.resetSystem = async () => {
     if(confirm('This will delete ALL books from the database. Are you sure?')) {
         showNotification('Deleting all books...', 'info');
-        
-        // Delete all books one by one
         for (const book of myLibrary) {
             await deleteBookFromDB(book._id);
         }
-        
         await fetchBooks();
         renderBooks();
         updateStats();
@@ -432,7 +428,7 @@ window.resetSystem = async () => {
     }
 };
 
-// === Modal Logic (History) ===
+// === Modal Logic ===
 const modal = document.getElementById('historyModal');
 const closeBtn = document.querySelector('.close-modal');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
@@ -505,33 +501,9 @@ themeToggleBtn.addEventListener('click', () => {
 // Add CSS for animations
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-    
-    .book-borrower, .book-date {
-        font-size: 0.85em;
-        color: #94a3b8;
-        margin-top: 5px;
-    }
+    @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(400px); opacity: 0; } }
+    .book-borrower, .book-date { font-size: 0.85em; color: #94a3b8; margin-top: 5px; }
 `;
 document.head.appendChild(style);
 
