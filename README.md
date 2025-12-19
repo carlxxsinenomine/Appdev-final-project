@@ -1,9 +1,4 @@
 # 📚 BookBase - Library Management System
-
-![Project Status](https://img.shields.io/badge/status-active-success.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tech Stack](https://img.shields.io/badge/stack-MERN-orange.svg)
-
 **BookBase** is a full-stack web application designed to manage book collections efficiently. It features a modern, responsive user interface with real-time database interactions, allowing users to track available books, manage borrowing history, and maintain a personal list of favorites.
 
 ---
@@ -51,3 +46,9 @@ Follow these steps to run the project locally.
 ```bash
 git clone [https://github.com/yourusername/bookbase.git](https://github.com/yourusername/bookbase.git)
 cd bookbase
+
+### 2. Install dependencies
+```bash
+npm install express mongoose cors body-parser
+
+### 3. Open the run.bat file
