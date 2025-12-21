@@ -549,14 +549,20 @@ themeToggleBtn.addEventListener('click', () => {
 });
 
 // === BORROW WINDOW LOGIC ===
-document.getElementById('confirmBorrowBtn').onclick = async () => {
+const borrowModal = document.getElementById('borrowModal');
+const cancelBtn = document.getElementById('cancelBorrowBtn');
+const confirmBtn = document.getElementById('confirmBorrowBtn');
+const closeIcon = document.querySelector('.close-modal');
+
+// 1. CONFIRM BUTTON
+confirmBtn.onclick = async () => {
     const name = document.getElementById('borrowerNameInput').value;
     
     if (name && name.trim() !== "" && pendingBookId) {
         await checkoutBook(pendingBookId, name.trim());
         
-        // Refresh UI
-        document.getElementById('borrowModal').style.display = 'none';
+        // Success: Close modal and refresh
+        borrowModal.style.display = 'none';
         await fetchBooks();
         renderBooks();
         updateStats();
@@ -564,10 +570,24 @@ document.getElementById('confirmBorrowBtn').onclick = async () => {
     }
 };
 
-// Helper function to close the window
-window.closeBorrowModal = () => {
-    document.getElementById('borrowModal').style.display = 'none';
+// 2. CANCEL BUTTON (This fixes your issue)
+cancelBtn.onclick = () => {
+    borrowModal.style.display = 'none';
     pendingBookId = null;
+};
+
+// 3. CLOSE ICON (The 'x' at the top)
+closeIcon.onclick = () => {
+    borrowModal.style.display = 'none';
+    pendingBookId = null;
+};
+
+// 4. CLICK OUTSIDE TO CLOSE
+window.onclick = (event) => {
+    if (event.target === borrowModal) {
+        borrowModal.style.display = 'none';
+        pendingBookId = null;
+    }
 };
 
 
