@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://appdev-final-project-ten.vercel.app/api';
 let currentUser = null;
 
 const loginView = document.getElementById('loginView');
