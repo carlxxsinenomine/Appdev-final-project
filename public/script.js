@@ -40,7 +40,8 @@ async function fetchBooks() {
     try {
         const response = await fetch(`${API_BASE_URL}/books`);
         if (!response.ok) throw new Error('Failed');
-        myLibrary = await response.json();
+        // FIX 1: Reverse the array so latest books come first
+        myLibrary = (await response.json()).reverse();
         return myLibrary;
     } catch (err) {
         showNotification('Using offline mode (Database fetch failed)', 'error');
@@ -192,6 +193,7 @@ function loadApp() {
 async function initData() {
     await fetchBooks();
     renderBooks();
+    renderRecentWidget();
     updateStats();
     setupNavigation();
     setupTheme();
@@ -376,7 +378,12 @@ window.viewHistory = async (id) => {
     if (data) {
         document.getElementById('modalBookTitle').textContent = data.title;
         document.getElementById('modalBookAuthor').textContent = data.author;
-        document.getElementById('modalHistoryList').innerHTML = data.history.map((h, i) => `
+        
+        // FIX 2: Reverse history array before rendering so latest is on top
+        // .slice() is used to create a copy so we don't mutate the original if we needed it elsewhere
+        const reversedHistory = data.history.slice().reverse();
+
+        document.getElementById('modalHistoryList').innerHTML = reversedHistory.map((h, i) => `
             <div class="history-item">
                 <div class="history-number">#${data.history.length - i}</div>
                 <div class="history-details">
@@ -436,6 +443,46 @@ function updateThemeUI(theme) {
         if(headerIcon) headerIcon.className = 'ri-sun-line';
         if(settingsIcon) settingsIcon.className = 'ri-sun-line';
     }
+}
+
+// === Render Recent Books Widget (Top 4) ===
+function renderRecentWidget() {
+    const container = document.getElementById('recentBooksGrid');
+    if (!container) return;
+
+    container.innerHTML = '';
+    
+    // Get the first 4 books (since array is already reversed, these are the newest)
+    const recentBooks = myLibrary.slice(0, 4);
+
+    if (recentBooks.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted)">No books added yet.</p>';
+        return;
+    }
+
+    recentBooks.forEach(book => {
+        const div = document.createElement('div');
+        div.className = 'mini-card';
+        
+        // Determine button style
+        const btnClass = book.status === 'checked-out' ? 'btn-checkin' : 'btn-checkout';
+        const btnText = book.status === 'checked-out' ? 'Return' : 'Borrow';
+        const badgeColor = book.status === 'checked-out' ? 'var(--danger)' : 'var(--success)';
+
+        div.innerHTML = `
+            <div class="book-title" title="${book.title}">${book.title}</div>
+            <div class="book-author">by ${book.author}</div>
+            <div class="mini-footer">
+                <span style="color:${badgeColor}; font-size: 11px; font-weight:bold; text-transform:uppercase;">
+                    ${book.status.replace('-', ' ')}
+                </span>
+                <button class="mini-btn ${btnClass}" onclick="toggleBookStatus('${book._id}')">
+                    ${btnText}
+                </button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
 }
 
 // Start

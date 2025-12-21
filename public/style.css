@@ -459,6 +459,71 @@ body.light-mode .btn-fav i { color: #ff4545; }
     transform: translateY(-2px);
 }
 
+/* === RECENT BOOKS WIDGET === */
+
+.recent-section {
+    /* Takes up the remaining space in the grid */
+    min-width: 0; 
+}
+
+.recent-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns x 2 rows = 4 items */
+    gap: 15px;
+}
+
+/* Compact Card Style */
+.mini-card {
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 12px;
+    border: var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s;
+}
+
+.mini-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+}
+
+.mini-card .book-title {
+    font-size: 1em;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.mini-card .book-author {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.mini-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mini-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Responsive: 1 column on smaller screens */
+@media (max-width: 1200px) {
+    .recent-grid { grid-template-columns: 1fr; }
+}
+
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* RESPONSIVE */

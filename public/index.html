@@ -94,73 +94,87 @@
 
                 <div class="content-container">
                     <div id="mainView">
+    
+                    <div id="dashboardContent">
                         
-                        <div id="dashboardContent">
-                            <div class="stats" id="statsSection">
-                                <div class="stat-card">
-                                    <div class="stat-icon blue"><i class="ri-stack-line"></i></div>
-                                    <div>
-                                        <div class="stat-number" id="totalBooks">0</div>
-                                        <div class="stat-label">Total Books</div>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon green"><i class="ri-checkbox-circle-line"></i></div>
-                                    <div>
-                                        <div class="stat-number" id="availableBooks">0</div>
-                                        <div class="stat-label">Available</div>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon red"><i class="ri-time-line"></i></div>
-                                    <div>
-                                        <div class="stat-number" id="checkedOutBooks">0</div>
-                                        <div class="stat-label">Checked Out</div>
-                                    </div>
+                        <div class="stats" id="statsSection">
+                            <div class="stat-card">
+                                <div class="stat-icon blue"><i class="ri-stack-line"></i></div>
+                                <div>
+                                    <div class="stat-number" id="totalBooks">0</div>
+                                    <div class="stat-label">Total Books</div>
                                 </div>
                             </div>
-
-                            <div class="dashboard-grid">
-                                <div class="form-section" id="formSection">
-                                    <h2><i class="ri-add-circle-line"></i> Add New Book</h2>
-                                    <form id="addBookForm">
-                                        <div class="form-group">
-                                            <label for="bookTitle">Book Title *</label>
-                                            <input type="text" id="bookTitle" required placeholder="Enter book title">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="bookAuthor">Author *</label>
-                                            <input type="text" id="bookAuthor" required placeholder="Enter author name">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="bookISBN">ISBN</label>
-                                            <input type="text" id="bookISBN" placeholder="Enter ISBN (optional)">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="bookDescription">Description</label>
-                                            <textarea id="bookDescription" placeholder="Brief description (optional)"></textarea>
-                                        </div>
-                                        <button type="submit">Add Book</button>
-                                    </form>
+                            <div class="stat-card">
+                                <div class="stat-icon green"><i class="ri-checkbox-circle-line"></i></div>
+                                <div>
+                                    <div class="stat-number" id="availableBooks">0</div>
+                                    <div class="stat-label">Available</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon red"><i class="ri-time-line"></i></div>
+                                <div>
+                                    <div class="stat-number" id="checkedOutBooks">0</div>
+                                    <div class="stat-label">Checked Out</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="books-section" id="librarySection">
-                            <div class="section-header">
-                                <h2 id="collectionTitle"><i class="ri-book-open-line"></i> Book Collection</h2>
-                                <div class="filter-wrapper">
-                                    <select id="filterStatus">
-                                        <option value="all">All Books</option>
-                                        <option value="available">Available</option>
-                                        <option value="checked-out">Checked Out</option>
-                                    </select>
+                        <div class="dashboard-grid">
+                            
+                            <div class="form-section" id="formSection">
+                                <h2><i class="ri-add-circle-line"></i> Add New Book</h2>
+                                <form id="addBookForm">
+                                    <div class="form-group">
+                                        <label>Book Title *</label>
+                                        <input type="text" id="bookTitle" required placeholder="Enter title">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Author *</label>
+                                        <input type="text" id="bookAuthor" required placeholder="Enter author">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ISBN</label>
+                                        <input type="text" id="bookISBN" placeholder="ISBN (Optional)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <textarea id="bookDescription" placeholder="Short description"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Add Book</button>
+                                </form>
+                            </div>
+
+                            <div class="recent-section">
+                                <div class="section-header">
+                                    <h2 style="font-size: 1.2em; display:flex; align-items:center; gap:10px;">
+                                        <i class="ri-sparkling-fill" style="color: #f59e0b;"></i> New Arrivals
+                                    </h2>
+                                </div>
+                                <div id="recentBooksGrid" class="recent-grid">
+                                    <p style="color: var(--text-muted);">Loading...</p> 
                                 </div>
                             </div>
-                            <div id="bookList" class="book-grid"></div>
-                        </div>
 
+                        </div>
                     </div>
+
+                    <div class="books-section" id="librarySection" style="margin-top: 40px;">
+                        <div class="section-header">
+                            <h2 id="collectionTitle"><i class="ri-book-open-line"></i> Book Collection</h2>
+                            <div class="filter-wrapper">
+                                <select id="filterStatus">
+                                    <option value="all">All Books</option>
+                                    <option value="available">Available</option>
+                                    <option value="checked-out">Checked Out</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="bookList" class="book-grid"></div>
+                    </div>
+
+                </div>
 
                     <div id="settingsView" class="hidden">
                         <div class="settings-panel">
