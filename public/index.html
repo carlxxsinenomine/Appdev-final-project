@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
 </head>
-<body>
+    <body>
     
     <div class="app-layout">
         
@@ -165,5 +165,28 @@
     </div>
 
     <script src="script.js"></script>
-</body>
+    </body>
+
+    <div id="borrowModal" class="modal" style="display: none;">
+        <div class="modal-content borrow-modal-size">
+            <div class="modal-header">
+                <h2><i class="ri-user-shared-line"></i> Checkout Book</h2>
+                <span class="close-modal" id="closeBorrowModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; color: var(--text-muted);">
+                    Who is borrowing <strong id="borrowBookTitle" style="color: var(--text-main);">this book</strong>?
+                </p>
+                <div class="form-group">
+                    <label for="borrowerNameInput">Borrower Name</label>
+                    <input type="text" id="borrowerNameInput" placeholder="Enter student or faculty name..." autocomplete="off">
+                </div>
+                <div class="modal-actions">
+                    <button id="cancelBorrowBtn" class="btn-secondary">Cancel</button>
+                    <button id="confirmBorrowBtn" class="btn-primary">Confirm Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </html>
