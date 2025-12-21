@@ -13,6 +13,6 @@
     }
   ],
   "env": {
-    "MONGODB_URI": "@mongodb_uri"
+    "MONGODB_URI": "mongodb+srv://temp:temp123@cluster0.ddy3sjl.mongodb.net/library?retryWrites=true&w=majority"
   }
 }
