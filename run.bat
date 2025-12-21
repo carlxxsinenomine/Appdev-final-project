@@ -15,14 +15,22 @@ if not exist "%SCRIPT_DIR%data\db" (
 	mkdir "%SCRIPT_DIR%data\db"
 )
 
-echo Starting MongoDB (in new window)...
-start "MongoDB Server" cmd /k "cd /d "%SCRIPT_DIR%" && mongod --dbpath "%SCRIPT_DIR%data\db" --bind_ip 127.0.0.1"
+REM Check if mongod is available
+where mongod >nul 2>&1
+if %errorlevel% equ 0 (
+	echo Starting MongoDB...
+	start "MongoDB Server" cmd /k "cd /d "%SCRIPT_DIR%" && mongod --dbpath "%SCRIPT_DIR%data\db" --bind_ip 127.0.0.1"
+	echo Waiting for Database to initialize...
+	timeout /t 5 /nobreak >nul
+) else (
+	echo WARNING: MongoDB not found in PATH. Ensure MongoDB is installed and added to PATH.
+	echo Continuing without MongoDB...
+)
 
-echo Waiting for Database to initialize...
-timeout /t 5 /nobreak >nul
-
-echo Starting Node.js Server (in new window)...
-start "Library Backend" cmd /k "cd /d "%SCRIPT_DIR%" && set PORT=%PORT% && node server.js"
+echo Starting Node.js Server...
+cd /d "%SCRIPT_DIR%"
+set PORT=%PORT%
+node server.js
 
 echo Waiting for server to start...
 timeout /t 2 /nobreak >nul
