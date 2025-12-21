@@ -22,6 +22,10 @@ const bookSchema = new mongoose.Schema({
         enum: ['available', 'checked-out'],
         default: 'available'
     },
+    isFavorite: {
+        type: Boolean,
+        default: false
+    },
     checkedOutBy: {
         type: String,
         default: null

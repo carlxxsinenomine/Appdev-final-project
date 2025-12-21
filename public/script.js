@@ -1,44 +1,24 @@
-// === Configuration ===
 const API_BASE_URL = 'http://localhost:3000/api';
+let currentUser = null;
 
-// === Data Storage ===
-let myLibrary = [];
-let currentView = 'dashboard'; // 'dashboard' or 'favorites'
+const loginView = document.getElementById('loginView');
+const appView = document.getElementById('appView');
+const userSelect = document.getElementById('userSelect');
+const passwordSection = document.getElementById('passwordSection');
+const loginPassword = document.getElementById('loginPassword');
+const loginBtn = document.getElementById('loginBtn');
+const guestLoginBtn = document.getElementById('guestLoginBtn');
+const loginError = document.getElementById('loginError');
 
-// === Book Class ===
-class Book {
-    constructor(title, author, isbn, description) {
-        this.title = title;
-        this.author = author;
-        this.isbn = isbn || 'N/A';
-        this.description = description || 'No description provided.';
-        this.status = 'available';
-        this.isFavorite = false;
-        this.checkedOutBy = null;
-        this.checkedOutDate = null;
-        this.borrowHistory = [];
-        this.createdAt = new Date();
-    }
-}
-
-// === DOM Elements ===
 const mainView = document.getElementById('mainView');
 const settingsView = document.getElementById('settingsView');
-const statsSection = document.getElementById('statsSection');
-const formSection = document.getElementById('formSection');
+const dashboardContent = document.getElementById('dashboardContent');
+const librarySection = document.getElementById('librarySection');
 const collectionTitle = document.getElementById('collectionTitle');
 
-const bookList = document.getElementById('bookList');
-const addBookForm = document.getElementById('addBookForm');
-const searchInput = document.getElementById('searchInput');
-const filterStatus = document.getElementById('filterStatus');
+const userAvatarImg = document.getElementById('userAvatarImg');
+const userNameDisplay = document.getElementById('userNameDisplay');
 
-// Stats Elements
-const totalBooksEl = document.getElementById('totalBooks');
-const availableBooksEl = document.getElementById('availableBooks');
-const checkedOutBooksEl = document.getElementById('checkedOutBooks');
-
-// Navigation Elements
 const navDashboard = document.getElementById('nav-dashboard');
 const navLibrary = document.getElementById('nav-library');
 const navFavorites = document.getElementById('nav-favorites');
@@ -46,193 +26,182 @@ const navSettings = document.getElementById('nav-settings');
 const navLogout = document.getElementById('nav-logout');
 const navItems = document.querySelectorAll('.nav-item');
 
+const resetSystemSection = document.getElementById('resetSystemSection');
+
+let myLibrary = [];
+let currentView = 'dashboard';
+
 // === API Functions ===
 async function fetchBooks() {
     try {
         const response = await fetch(`${API_BASE_URL}/books`);
-        if (!response.ok) throw new Error('Failed to fetch books');
-        const books = await response.json();
-        myLibrary = books;
-        return books;
+        if (!response.ok) throw new Error('Failed');
+        // FIX 1: Reverse the array so latest books come first
+        myLibrary = (await response.json()).reverse();
+        return myLibrary;
     } catch (err) {
-        console.error('Error fetching books:', err);
-        showNotification('Failed to load books from database', 'error');
+        showNotification('Using offline mode (Database fetch failed)', 'error');
         return [];
     }
 }
-
 async function addBookToDB(bookData) {
     try {
         const response = await fetch(`${API_BASE_URL}/books`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bookData)
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bookData)
         });
-        if (!response.ok) throw new Error('Failed to add book');
-        const newBook = await response.json();
-        showNotification('Book added successfully!', 'success');
-        return newBook;
-    } catch (err) {
-        console.error('Error adding book:', err);
-        showNotification('Failed to add book to database', 'error');
-        return null;
-    }
+        if (!response.ok) throw new Error('Failed');
+        showNotification('Book added!', 'success');
+        return await response.json();
+    } catch (err) { showNotification('Failed to add book', 'error'); return null; }
 }
-
-async function checkoutBook(id, borrower = 'Current User') {
+async function checkoutBook(id, borrower) {
     try {
         const response = await fetch(`${API_BASE_URL}/books/${id}/checkout`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ borrower })
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ borrower })
         });
-        if (!response.ok) throw new Error('Failed to checkout book');
-        const updatedBook = await response.json();
-        showNotification('Book checked out successfully!', 'success');
-        return updatedBook;
-    } catch (err) {
-        console.error('Error checking out book:', err);
-        showNotification('Failed to checkout book', 'error');
-        return null;
-    }
+        if (!response.ok) throw new Error('Failed');
+        return await response.json();
+    } catch (err) { showNotification('Failed to checkout', 'error'); return null; }
 }
-
 async function checkinBook(id) {
     try {
         const response = await fetch(`${API_BASE_URL}/books/${id}/checkin`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' }
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' }
         });
-        if (!response.ok) throw new Error('Failed to checkin book');
-        const updatedBook = await response.json();
-        showNotification('Book returned successfully!', 'success');
-        return updatedBook;
-    } catch (err) {
-        console.error('Error checking in book:', err);
-        showNotification('Failed to return book', 'error');
-        return null;
-    }
+        if (!response.ok) throw new Error('Failed');
+        return await response.json();
+    } catch (err) { showNotification('Failed to return', 'error'); return null; }
 }
-
 async function deleteBookFromDB(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/books/${id}`, {
-            method: 'DELETE'
-        });
-        if (!response.ok) throw new Error('Failed to delete book');
-        showNotification('Book deleted successfully!', 'success');
+        const response = await fetch(`${API_BASE_URL}/books/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Failed');
         return true;
-    } catch (err) {
-        console.error('Error deleting book:', err);
-        showNotification('Failed to delete book', 'error');
-        return false;
-    }
+    } catch (err) { showNotification('Failed to delete', 'error'); return false; }
 }
-
 async function fetchBookHistory(id) {
     try {
         const response = await fetch(`${API_BASE_URL}/books/${id}/history`);
-        if (!response.ok) throw new Error('Failed to fetch history');
         return await response.json();
-    } catch (err) {
-        console.error('Error fetching history:', err);
-        showNotification('Failed to load history', 'error');
-        return null;
-    }
+    } catch (err) { return null; }
 }
-
 async function clearBookHistory(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/books/${id}/history`, {
-            method: 'DELETE'
-        });
-        if (!response.ok) throw new Error('Failed to clear history');
-        showNotification('History cleared successfully!', 'success');
-        return await response.json();
-    } catch (err) {
-        console.error('Error clearing history:', err);
-        showNotification('Failed to clear history', 'error');
-        return null;
+        await fetch(`${API_BASE_URL}/books/${id}/history`, { method: 'DELETE' });
+        return await fetchBookHistory(id); 
+    } catch (err) { return null; }
+}
+async function toggleFavoriteInDB(id) {
+    try { await fetch(`${API_BASE_URL}/books/${id}/favorite`, { method: 'PATCH' }); } catch (err) {}
+}
+
+// === AUTHENTICATION LOGIC ===
+
+function initAuth() {
+    const savedUser = localStorage.getItem('bookbase_user');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        loadApp();
+    } else {
+        loginView.classList.remove('hidden');
+        appView.classList.add('hidden');
     }
 }
 
-// === Notification System ===
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+userSelect.addEventListener('change', () => {
+    loginError.classList.add('hidden');
+    loginPassword.value = '';
+    // Show password only for Admin
+    if (userSelect.value === 'admin') {
+        passwordSection.classList.remove('hidden');
+    } else {
+        passwordSection.classList.add('hidden');
+    }
+});
+
+loginBtn.addEventListener('click', () => {
+    const role = userSelect.value;
+    if (!role) {
+        showNotification('Please select a user', 'error');
+        return;
+    }
+
+    if (role === 'admin') {
+        if (loginPassword.value === 'admin123') { 
+            loginUser('Administrator', 'admin', 'https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff');
+        } else {
+            loginError.classList.remove('hidden');
+        }
+    } else {
+        // Log in as User
+        loginUser('User', 'user', 'https://ui-avatars.com/api/?name=User&background=10b981&color=fff');
+    }
+});
+
+guestLoginBtn.addEventListener('click', () => {
+    loginUser('Guest', 'guest', 'https://ui-avatars.com/api/?name=Guest&background=6b7280&color=fff');
+});
+
+function loginUser(name, role, avatar) {
+    currentUser = { name, role, avatar };
+    localStorage.setItem('bookbase_user', JSON.stringify(currentUser));
+    loadApp();
 }
 
-// === Initialization ===
-async function init() {
-    showNotification('Loading books from database...', 'info');
+window.logout = () => {
+    localStorage.removeItem('bookbase_user');
+    location.reload();
+};
+
+function loadApp() {
+    loginView.classList.add('hidden');
+    appView.classList.remove('hidden');
+    
+    userNameDisplay.textContent = currentUser.name;
+    userAvatarImg.src = currentUser.avatar;
+
+    // === ROLE BASED PERMISSIONS ===
+    
+    //admin
+    if (currentUser.role === 'admin') {
+        navDashboard.style.display = 'block';     
+        navSettings.style.display = 'block';      
+        resetSystemSection.style.display = 'flex'; 
+        switchView('dashboard');
+    }
+    //USER
+    else if (currentUser.role === 'user') {
+        navDashboard.style.display = 'none';     
+        navSettings.style.display = 'block';       
+        resetSystemSection.style.display = 'none'; 
+        switchView('library');                    
+    }
+    //GUEST
+    else if (currentUser.role === 'guest') {
+        navDashboard.style.display = 'none';
+        navSettings.style.display = 'none';
+        switchView('library');
+    }
+
+    initData(); 
+}
+
+async function initData() {
     await fetchBooks();
     renderBooks();
+    renderRecentWidget();
     updateStats();
     setupNavigation();
+    setupTheme();
 }
 
-// === Navigation Logic ===
+// === Navigation & Views ===
 function setupNavigation() {
-    
-    // 1. Dashboard: Show All
-    navDashboard.addEventListener('click', (e) => {
-        e.preventDefault();
-        setActiveNav(navDashboard);
-        switchView('dashboard');
-    });
-
-    // 2. My Library: Scroll to List
-    navLibrary.addEventListener('click', (e) => {
-        e.preventDefault();
-        setActiveNav(navLibrary);
-        switchView('dashboard');
-        document.getElementById('librarySection').scrollIntoView({ behavior: 'smooth' });
-    });
-
-    // 3. Favorites: Filter List, Hide Form/Stats
-    navFavorites.addEventListener('click', (e) => {
-        e.preventDefault();
-        setActiveNav(navFavorites);
-        switchView('favorites');
-    });
-
-    // 4. Settings: Show Settings Panel
-    navSettings.addEventListener('click', (e) => {
-        e.preventDefault();
-        setActiveNav(navSettings);
-        switchView('settings');
-    });
-
-    // 5. Logout
-    navLogout.addEventListener('click', (e) => {
-        e.preventDefault();
-        if(confirm('Are you sure you want to logout?')) {
-            showNotification('Logging out...', 'info');
-            setTimeout(() => location.reload(), 1000);
-        }
-    });
+    navDashboard.addEventListener('click', (e) => { e.preventDefault(); setActiveNav(navDashboard); switchView('dashboard'); });
+    navLibrary.addEventListener('click', (e) => { e.preventDefault(); setActiveNav(navLibrary); switchView('library'); });
+    navFavorites.addEventListener('click', (e) => { e.preventDefault(); setActiveNav(navFavorites); switchView('favorites'); });
+    navSettings.addEventListener('click', (e) => { e.preventDefault(); setActiveNav(navSettings); switchView('settings'); });
+    navLogout.addEventListener('click', (e) => { e.preventDefault(); if(confirm('Logout?')) logout(); });
 }
 
 function setActiveNav(activeItem) {
@@ -242,22 +211,25 @@ function setActiveNav(activeItem) {
 
 function switchView(viewName) {
     currentView = viewName;
-
-    // Reset UI Visibility
     mainView.classList.remove('hidden');
     settingsView.classList.add('hidden');
-    statsSection.style.display = 'grid';
-    formSection.style.display = 'block';
     collectionTitle.innerHTML = '<i class="ri-book-open-line"></i> Book Collection';
 
+    // Reset visibility
+    dashboardContent.style.display = 'none';
+    librarySection.style.display = 'block'; // Always show list unless settings
+
     if (viewName === 'dashboard') {
+        dashboardContent.style.display = 'block'; // Show Stats + Form
         renderBooks();
     } 
-    else if (viewName === 'favorites') {
-        statsSection.style.display = 'none';
-        formSection.style.display = 'none';
-        collectionTitle.innerHTML = '<i class="ri-heart-fill" style="color:#ef4444"></i> Favorite Books';
+    else if (viewName === 'library') {
+        collectionTitle.innerHTML = '<i class="ri-book-2-line"></i> My Full Library';
         renderBooks();
+    }
+    else if (viewName === 'favorites') {
+        collectionTitle.innerHTML = '<i class="ri-heart-fill" style="color:#ef4444"></i> Favorite Books';
+        renderBooks(true);
     } 
     else if (viewName === 'settings') {
         mainView.classList.add('hidden');
@@ -265,275 +237,248 @@ function switchView(viewName) {
     }
 }
 
-// === Core Functions ===
+// === Core Logic ===
 function updateStats() {
-    const total = myLibrary.length;
-    const checkedOut = myLibrary.filter(book => book.status === 'checked-out').length;
-    const available = total - checkedOut;
-
-    totalBooksEl.textContent = total;
-    availableBooksEl.textContent = available;
-    checkedOutBooksEl.textContent = checkedOut;
+    document.getElementById('totalBooks').textContent = myLibrary.length;
+    const checkedOut = myLibrary.filter(b => b.status === 'checked-out').length;
+    document.getElementById('checkedOutBooks').textContent = checkedOut;
+    document.getElementById('availableBooks').textContent = myLibrary.length - checkedOut;
 }
 
-function renderBooks() {
-    bookList.innerHTML = '';
-    
-    const searchTerm = searchInput.value.toLowerCase();
-    const statusFilter = filterStatus.value;
+function renderBooks(onlyFavorites = false) {
+    const list = document.getElementById('bookList');
+    list.innerHTML = '';
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('filterStatus').value;
 
-    const filteredBooks = myLibrary.filter(book => {
-        // 1. Search Filter
-        const matchesSearch = book.title.toLowerCase().includes(searchTerm) || 
-                              book.author.toLowerCase().includes(searchTerm);
-        
-        // 2. Status Filter
+    const filtered = myLibrary.filter(book => {
+        const matchesSearch = book.title.toLowerCase().includes(searchTerm) || book.author.toLowerCase().includes(searchTerm);
         let matchesStatus = true;
         if (statusFilter === 'available') matchesStatus = book.status === 'available';
         if (statusFilter === 'checked-out') matchesStatus = book.status === 'checked-out';
-
-        // 3. View Filter (Favorites)
-        let matchesView = true;
-        if (currentView === 'favorites') matchesView = book.isFavorite;
-
-        return matchesSearch && matchesStatus && matchesView;
+        const matchesFav = onlyFavorites ? book.isFavorite : true;
+        return matchesSearch && matchesStatus && matchesFav;
     });
 
-    if (filteredBooks.length === 0) {
-        bookList.innerHTML = `
-            <div class="empty-state">
-                <i class="ri-search-2-line" style="font-size: 3em; margin-bottom: 10px;"></i>
-                <p>No books found.</p>
-            </div>`;
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state"><p>No books found.</p></div>`;
         return;
     }
 
-    filteredBooks.forEach(book => {
+    filtered.forEach(book => {
         const card = document.createElement('div');
         card.className = `book-card ${book.status === 'checked-out' ? 'checked-out' : 'available'}`;
-        
-        const statusBadge = book.status === 'checked-out'
-            ? '<span class="status-badge checked-out">Checked Out</span>' 
-            : '<span class="status-badge available">Available</span>';
-
         const btnClass = book.status === 'checked-out' ? 'btn-checkin' : 'btn-checkout';
         const btnText = book.status === 'checked-out' ? 'Return' : 'Check Out';
-        
-        // Heart Icon Logic
-        const heartIcon = book.isFavorite ? 'ri-heart-fill' : 'ri-heart-line';
-        const heartColor = book.isFavorite ? 'color: #ef4444;' : 'color: white;';
+        const deleteBtn = currentUser.role === 'admin' 
+            ? `<button class="btn-delete" onclick="deleteBook('${book._id}')"><i class="ri-delete-bin-line"></i></button>` 
+            : '';
 
         card.innerHTML = `
             <div class="book-header">
                 <div class="book-title">${book.title}</div>
-                ${statusBadge}
+                <span class="status-badge ${book.status}">${book.status}</span>
             </div>
             <div class="book-author">by ${book.author}</div>
-            <div class="book-isbn">ISBN: ${book.isbn}</div>
             <div class="book-description">${book.description}</div>
-            ${book.checkedOutBy ? `<div class="book-borrower"><strong>Borrowed by:</strong> ${book.checkedOutBy}</div>` : ''}
-            ${book.checkedOutDate ? `<div class="book-date"><strong>Checked out:</strong> ${book.checkedOutDate}</div>` : ''}
-            
+            ${book.checkedOutBy ? `<div class="book-borrower">Borrowed by: ${book.checkedOutBy}</div>` : ''}
             <div class="book-actions">
-                <button class="${btnClass}" onclick="toggleBookStatus('${book._id}')">
-                    ${btnText}
-                </button>
-                <button class="btn-fav" onclick="toggleFavorite('${book._id}')" style="${heartColor}">
-                    <i class="${heartIcon}"></i>
-                </button>
-                <button class="btn-history" onclick="viewHistory('${book._id}')">
-                    <i class="ri-history-line"></i>
-                </button>
-                <button class="btn-delete" onclick="deleteBook('${book._id}')">
-                    <i class="ri-delete-bin-line"></i>
-                </button>
+                <button class="${btnClass}" onclick="toggleBookStatus('${book._id}')">${btnText}</button>
+                <button class="btn-fav ${book.isFavorite ? 'is-favorite' : ''}" onclick="toggleFavorite('${book._id}')"><i class="${book.isFavorite ? 'ri-heart-fill' : 'ri-heart-line'}"></i></button>
+                <button class="btn-history" onclick="viewHistory('${book._id}')"><i class="ri-history-line"></i></button>
+                ${deleteBtn}
             </div>
         `;
-        bookList.appendChild(card);
+        list.appendChild(card);
     });
 }
 
-// === Event Listeners ===
-addBookForm.addEventListener('submit', async (e) => {
+// === Actions ===
+let pendingBookId = null;
+
+window.toggleBookStatus = async (id) => {
+    const book = myLibrary.find(b => b._id === id);
+    if (!book) return;
+
+    if (book.status === 'available') {
+        if (currentUser.role === 'guest') {
+            document.getElementById('guestModal').style.display = 'flex';
+            return;
+        }
+        pendingBookId = id;
+        document.getElementById('borrowerNameInput').value = '';
+        document.getElementById('borrowModal').style.display = 'flex';
+        document.getElementById('borrowerNameInput').focus();
+    } else {
+        await checkinBook(id);
+        await initData();
+    }
+};
+
+document.getElementById('addBookForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const bookData = {
         title: document.getElementById('bookTitle').value,
         author: document.getElementById('bookAuthor').value,
         isbn: document.getElementById('bookISBN').value,
         description: document.getElementById('bookDescription').value
     };
-
-    const newBook = await addBookToDB(bookData);
-    if (newBook) {
-        await fetchBooks();
-        addBookForm.reset();
-        renderBooks();
-        updateStats();
-        
-        // If in favorites view, switch back to dashboard to see the new book
-        if (currentView === 'favorites') navDashboard.click();
+    if(await addBookToDB(bookData)) {
+        await initData();
+        document.getElementById('addBookForm').reset();
     }
 });
 
-searchInput.addEventListener('input', renderBooks);
-filterStatus.addEventListener('change', renderBooks);
+document.getElementById('searchInput').addEventListener('input', () => renderBooks(currentView === 'favorites'));
+document.getElementById('filterStatus').addEventListener('change', () => renderBooks(currentView === 'favorites'));
 
-// === Global Functions ===
-window.toggleBookStatus = async (id) => {
-    const book = myLibrary.find(b => b._id === id);
-    if (!book) return;
-    
-    if (book.status === 'available') {
-        await checkoutBook(id);
-    } else {
-        await checkinBook(id);
-    }
-    
-    await fetchBooks();
-    renderBooks();
-    updateStats();
-};
-
-window.toggleFavorite = (id) => {
+window.toggleFavorite = async (id) => {
     const book = myLibrary.find(b => b._id === id);
     if (book) {
         book.isFavorite = !book.isFavorite;
-        renderBooks();
-        // Note: This is client-side only. To persist, you'd need to add a backend endpoint
-        showNotification(book.isFavorite ? 'Added to favorites' : 'Removed from favorites', 'info');
+        renderBooks(currentView === 'favorites');
+        await toggleFavoriteInDB(id);
     }
 };
-
 window.deleteBook = async (id) => {
-    if(confirm('Delete this book from the database?')) {
-        const success = await deleteBookFromDB(id);
-        if (success) {
-            await fetchBooks();
-            renderBooks();
-            updateStats();
-        }
+    if(confirm('Delete book?')) {
+        if(await deleteBookFromDB(id)) await initData();
     }
 };
-
 window.resetSystem = async () => {
-    if(confirm('This will delete ALL books from the database. Are you sure?')) {
-        showNotification('Deleting all books...', 'info');
-        
-        // Delete all books one by one
-        for (const book of myLibrary) {
-            await deleteBookFromDB(book._id);
-        }
-        
-        await fetchBooks();
-        renderBooks();
-        updateStats();
-        showNotification('System Reset Complete', 'success');
+    if(confirm('Delete ALL books?')) {
+        for(const b of myLibrary) await deleteBookFromDB(b._id);
+        await initData();
     }
 };
 
-// === Modal Logic (History) ===
-const modal = document.getElementById('historyModal');
-const closeBtn = document.querySelector('.close-modal');
-const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-let currentBookId = null;
+// === Modals ===
+const closeModals = () => {
+    document.getElementById('borrowModal').style.display = 'none';
+    document.getElementById('guestModal').style.display = 'none';
+    document.getElementById('historyModal').style.display = 'none';
+    pendingBookId = null;
+};
+
+document.getElementById('confirmBorrowBtn').onclick = async () => {
+    const name = document.getElementById('borrowerNameInput').value;
+    if (name && pendingBookId) {
+        await checkoutBook(pendingBookId, name);
+        closeModals();
+        await initData();
+    }
+};
 
 window.viewHistory = async (id) => {
-    currentBookId = id;
-    const historyData = await fetchBookHistory(id);
-    
-    if (historyData) {
-        document.getElementById('modalBookTitle').textContent = historyData.title;
-        document.getElementById('modalBookAuthor').textContent = `by ${historyData.author}`;
-        renderHistoryList(historyData.history);
-        modal.style.display = 'flex';
+    const data = await fetchBookHistory(id);
+    if (data) {
+        document.getElementById('modalBookTitle').textContent = data.title;
+        document.getElementById('modalBookAuthor').textContent = data.author;
+        
+        // FIX 2: Reverse history array before rendering so latest is on top
+        // .slice() is used to create a copy so we don't mutate the original if we needed it elsewhere
+        const reversedHistory = data.history.slice().reverse();
+
+        document.getElementById('modalHistoryList').innerHTML = reversedHistory.map((h, i) => `
+            <div class="history-item">
+                <div class="history-number">#${data.history.length - i}</div>
+                <div class="history-details">
+                    <div><strong>Borrower:</strong> ${h.borrower}</div>
+                    <div><strong>Date:</strong> ${h.checkoutDate}</div>
+                </div>
+            </div>`).join('') || '<p>No history</p>';
+        document.getElementById('historyModal').style.display = 'flex';
     }
 };
 
-function renderHistoryList(history) {
-    const list = document.getElementById('modalHistoryList');
-    list.innerHTML = '';
+document.querySelectorAll('.close-modal, #cancelBorrowBtn').forEach(btn => btn.onclick = closeModals);
+window.onclick = (e) => {
+    if (e.target.classList.contains('modal')) closeModals();
+};
+
+function showNotification(msg, type) {
+    const n = document.createElement('div');
+    n.className = `notification notification-${type}`;
+    n.innerText = msg;
+    n.style.cssText = `position:fixed;top:20px;right:20px;padding:15px;background:${type==='success'?'#10b981':'#ef4444'};color:#fff;border-radius:8px;z-index:9999;`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3000);
+}
+
+// === Theme Logic (Header + Settings) ===
+function setupTheme() {
+    const headerBtn = document.getElementById('headerThemeBtn');
+    const settingsBtn = document.getElementById('settingsThemeBtn');
     
-    if (!history || history.length === 0) {
-        list.innerHTML = '<p class="no-history">No borrowing history available.</p>';
+    // Check saved theme
+    if(localStorage.getItem('theme')==='light') updateThemeUI('light');
+    else updateThemeUI('dark');
+
+    // Button Logic
+    const toggleTheme = () => {
+        const isLight = document.body.classList.contains('light-mode');
+        updateThemeUI(isLight ? 'dark' : 'light');
+    };
+
+    headerBtn.onclick = toggleTheme;
+    settingsBtn.onclick = toggleTheme;
+}
+
+function updateThemeUI(theme) {
+    const headerIcon = document.querySelector('#headerThemeBtn i');
+    const settingsIcon = document.querySelector('#settingsThemeBtn i');
+    
+    if (theme === 'light') {
+        document.body.classList.add('light-mode');
+        localStorage.setItem('theme', 'light');
+        if(headerIcon) headerIcon.className = 'ri-moon-line';
+        if(settingsIcon) settingsIcon.className = 'ri-moon-line';
+    } else {
+        document.body.classList.remove('light-mode');
+        localStorage.setItem('theme', 'dark');
+        if(headerIcon) headerIcon.className = 'ri-sun-line';
+        if(settingsIcon) settingsIcon.className = 'ri-sun-line';
+    }
+}
+
+// === Render Recent Books Widget (Top 4) ===
+function renderRecentWidget() {
+    const container = document.getElementById('recentBooksGrid');
+    if (!container) return;
+
+    container.innerHTML = '';
+    
+    // Get the first 4 books (since array is already reversed, these are the newest)
+    const recentBooks = myLibrary.slice(0, 4);
+
+    if (recentBooks.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted)">No books added yet.</p>';
         return;
     }
-    
-    history.forEach((log, index) => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `
-            <div class="history-number">#${history.length - index}</div>
-            <div class="history-details">
-                <div><strong>Borrower:</strong> ${log.borrower}</div>
-                <div><strong>Checked Out:</strong> ${log.checkoutDate}</div>
-                <div><strong>Returned:</strong> ${log.returnDate}</div>
-            </div>`;
-        list.appendChild(item);
+
+    recentBooks.forEach(book => {
+        const div = document.createElement('div');
+        div.className = 'mini-card';
+        
+        // Determine button style
+        const btnClass = book.status === 'checked-out' ? 'btn-checkin' : 'btn-checkout';
+        const btnText = book.status === 'checked-out' ? 'Return' : 'Borrow';
+        const badgeColor = book.status === 'checked-out' ? 'var(--danger)' : 'var(--success)';
+
+        div.innerHTML = `
+            <div class="book-title" title="${book.title}">${book.title}</div>
+            <div class="book-author">by ${book.author}</div>
+            <div class="mini-footer">
+                <span style="color:${badgeColor}; font-size: 11px; font-weight:bold; text-transform:uppercase;">
+                    ${book.status.replace('-', ' ')}
+                </span>
+                <button class="mini-btn ${btnClass}" onclick="toggleBookStatus('${book._id}')">
+                    ${btnText}
+                </button>
+            </div>
+        `;
+        container.appendChild(div);
     });
 }
 
-closeBtn.onclick = () => modal.style.display = 'none';
-window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-
-clearHistoryBtn.onclick = async () => {
-    if (confirm('Clear all borrowing history for this book?')) {
-        const result = await clearBookHistory(currentBookId);
-        if (result) {
-            renderHistoryList(result.history);
-        }
-    }
-};
-
-// === Theme Toggle Logic ===
-const themeToggleBtn = document.getElementById('themeToggle');
-const body = document.body;
-const icon = themeToggleBtn.querySelector('i');
-
-themeToggleBtn.addEventListener('click', () => {
-    body.classList.toggle('light-mode');
-    
-    if (body.classList.contains('light-mode')) {
-        icon.classList.remove('ri-sun-line');
-        icon.classList.add('ri-moon-line');
-    } else {
-        icon.classList.remove('ri-moon-line');
-        icon.classList.add('ri-sun-line');
-    }
-});
-
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-    
-    .book-borrower, .book-date {
-        font-size: 0.85em;
-        color: #94a3b8;
-        margin-top: 5px;
-    }
-`;
-document.head.appendChild(style);
-
-// Run Init
-init();
+initAuth();

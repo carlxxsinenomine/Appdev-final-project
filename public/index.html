@@ -8,151 +8,202 @@
     <link href="style.css" rel="stylesheet">
 </head>
 <body>
-    
-    <div class="app-layout">
-        
-        <aside class="sidebar">
-            <div class="logo">
-                <span>BookBase</span>
-            </div>
-            <nav>
-                <p class="menu-label">Menu</p>
-                <ul>
-                    <li class="nav-item active" id="nav-dashboard">
-                        <a href="#"><i class="ri-dashboard-line"></i> Dashboard</a>
-                    </li>
-                    <li class="nav-item" id="nav-library">
-                        <a href="#"><i class="ri-book-2-line"></i> My Library</a>
-                    </li>
-                    <li class="nav-item" id="nav-favorites">
-                        <a href="#"><i class="ri-heart-line"></i> Favorites</a>
-                    </li>
-                </ul>
-                <p class="menu-label">System</p>
-                <ul>
-                    <li class="nav-item" id="nav-settings">
-                        <a href="#"><i class="ri-settings-4-line"></i> Settings</a>
-                    </li>
-                    <li class="nav-item" id="nav-logout">
-                        <a href="#"><i class="ri-logout-box-r-line"></i> Logout</a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
 
-        <main class="main-content">
-            
-           <header class="top-bar">
-            <div class="search-wrapper">
-                <i class="ri-search-line"></i>
-                <input type="text" id="searchInput" placeholder="Search title, author, or ISBN...">
+    <div id="loginView" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-large">BookBase</div>
+                <p>Library Management System</p>
             </div>
 
-            <div class="user-profile">
-                <button id="themeToggle" class="theme-btn" title="Toggle Light/Dark Mode">
-                    <i class="ri-sun-line"></i>
-                </button>
-
-                <div class="icon-btn"><i class="ri-notification-3-line"></i></div>
-                <div class="avatar">
-                    <img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="User">
-                    <span>Admin</span>
+            <div class="login-body">
+                <div class="form-group">
+                    <label>Select Account Type</label>
+                    <select id="userSelect">
+                        <option value="" disabled selected>Select an account...</option>
+                        <option value="admin">Administrator</option>
+                        <option value="user">User</option>
+                    </select>
                 </div>
-            </div>
-        </header>
 
-            <div class="content-container">
+                <div id="passwordSection" class="form-group hidden">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password">
+                    <p class="error-msg hidden" id="loginError">Incorrect password</p>
+                </div>
+
+                <button id="loginBtn" class="btn-primary full-width">Login</button>
                 
-                <div id="mainView">
-                    <div class="stats" id="statsSection">
-                        <div class="stat-card">
-                            <div class="stat-icon blue"><i class="ri-stack-line"></i></div>
-                            <div>
-                                <div class="stat-number" id="totalBooks">0</div>
-                                <div class="stat-label">Total Books</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon green"><i class="ri-checkbox-circle-line"></i></div>
-                            <div>
-                                <div class="stat-number" id="availableBooks">0</div>
-                                <div class="stat-label">Available</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon red"><i class="ri-time-line"></i></div>
-                            <div>
-                                <div class="stat-number" id="checkedOutBooks">0</div>
-                                <div class="stat-label">Checked Out</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-grid">
-                        <div class="form-section" id="formSection">
-                            <h2><i class="ri-add-circle-line"></i> Add New Book</h2>
-                            <form id="addBookForm">
-                                <div class="form-group">
-                                    <label for="bookTitle">Book Title *</label>
-                                    <input type="text" id="bookTitle" required placeholder="Enter book title">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bookAuthor">Author *</label>
-                                    <input type="text" id="bookAuthor" required placeholder="Enter author name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bookISBN">ISBN</label>
-                                    <input type="text" id="bookISBN" placeholder="Enter ISBN (optional)">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bookDescription">Description</label>
-                                    <textarea id="bookDescription" placeholder="Brief description (optional)"></textarea>
-                                </div>
-                                <button type="submit">Add Book</button>
-                            </form>
-                        </div>
-
-                        <div class="books-section" id="librarySection">
-                            <div class="section-header">
-                                <h2 id="collectionTitle"><i class="ri-book-open-line"></i> Book Collection</h2>
-                                <div class="filter-wrapper">
-                                    <select id="filterStatus">
-                                        <option value="all">All Books</option>
-                                        <option value="available">Available</option>
-                                        <option value="checked-out">Checked Out</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div id="bookList" class="book-grid"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="settingsView" class="hidden">
-                    <div class="settings-panel">
-                        <h2><i class="ri-settings-4-line"></i> System Settings</h2>
-                        
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h3>Data Management</h3>
-                                <p>Clear all books and reset the application to default state.</p>
-                            </div>
-                            <button class="btn-delete" onclick="resetSystem()">Reset System</button>
-                        </div>
-
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h3>Export Data</h3>
-                                <p>Download your library data as a JSON file.</p>
-                            </div>
-                            <button class="btn-checkin" onclick="alert('Export feature coming soon!')">Export JSON</button>
-                        </div>
-                    </div>
-                </div>
-
+                <div class="divider"><span>OR</span></div>
+                
+                <button id="guestLoginBtn" class="btn-secondary full-width">Continue as Guest</button>
             </div>
-        </main>
+        </div>
+    </div>
+
+    <div id="appView" class="hidden">
+        <div class="app-layout">
+            
+            <aside class="sidebar">
+                <div class="logo">
+                    <span>BookBase</span>
+                </div>
+                <nav>
+                    <p class="menu-label">Menu</p>
+                    <ul>
+                        <li class="nav-item" id="nav-dashboard">
+                            <a href="#"><i class="ri-dashboard-line"></i> Dashboard</a>
+                        </li>
+                        <li class="nav-item" id="nav-library">
+                            <a href="#"><i class="ri-book-2-line"></i> My Library</a>
+                        </li>
+                        <li class="nav-item" id="nav-favorites">
+                            <a href="#"><i class="ri-heart-line"></i> Favorites</a>
+                        </li>
+                    </ul>
+                    <p class="menu-label">System</p>
+                    <ul>
+                        <li class="nav-item" id="nav-settings">
+                            <a href="#"><i class="ri-settings-4-line"></i> Settings</a>
+                        </li>
+                        <li class="nav-item" id="nav-logout">
+                            <a href="#"><i class="ri-logout-box-r-line"></i> Logout</a>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                <header class="top-bar">
+                    <div class="search-wrapper">
+                        <i class="ri-search-line"></i>
+                        <input type="text" id="searchInput" placeholder="Search title, author, or ISBN...">
+                    </div>
+
+                    <div class="user-profile">
+                        <button id="headerThemeBtn" class="theme-btn" title="Toggle Light/Dark Mode">
+                            <i class="ri-sun-line"></i>
+                        </button>
+
+                        <div class="avatar" id="userProfileDisplay">
+                            <img src="" alt="User" id="userAvatarImg">
+                            <span id="userNameDisplay">User</span>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="content-container">
+                    <div id="mainView">
+    
+                    <div id="dashboardContent">
+                        
+                        <div class="stats" id="statsSection">
+                            <div class="stat-card">
+                                <div class="stat-icon blue"><i class="ri-stack-line"></i></div>
+                                <div>
+                                    <div class="stat-number" id="totalBooks">0</div>
+                                    <div class="stat-label">Total Books</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon green"><i class="ri-checkbox-circle-line"></i></div>
+                                <div>
+                                    <div class="stat-number" id="availableBooks">0</div>
+                                    <div class="stat-label">Available</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon red"><i class="ri-time-line"></i></div>
+                                <div>
+                                    <div class="stat-number" id="checkedOutBooks">0</div>
+                                    <div class="stat-label">Checked Out</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-grid">
+                            
+                            <div class="form-section" id="formSection">
+                                <h2><i class="ri-add-circle-line"></i> Add New Book</h2>
+                                <form id="addBookForm">
+                                    <div class="form-group">
+                                        <label>Book Title *</label>
+                                        <input type="text" id="bookTitle" required placeholder="Enter title">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Author *</label>
+                                        <input type="text" id="bookAuthor" required placeholder="Enter author">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ISBN</label>
+                                        <input type="text" id="bookISBN" placeholder="ISBN (Optional)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <textarea id="bookDescription" placeholder="Short description"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Add Book</button>
+                                </form>
+                            </div>
+
+                            <div class="recent-section">
+                                <div class="section-header">
+                                    <h2 style="font-size: 1.2em; display:flex; align-items:center; gap:10px;">
+                                        <i class="ri-sparkling-fill" style="color: #f59e0b;"></i> New Arrivals
+                                    </h2>
+                                </div>
+                                <div id="recentBooksGrid" class="recent-grid">
+                                    <p style="color: var(--text-muted);">Loading...</p> 
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="books-section" id="librarySection" style="margin-top: 40px;">
+                        <div class="section-header">
+                            <h2 id="collectionTitle"><i class="ri-book-open-line"></i> Book Collection</h2>
+                            <div class="filter-wrapper">
+                                <select id="filterStatus">
+                                    <option value="all">All Books</option>
+                                    <option value="available">Available</option>
+                                    <option value="checked-out">Checked Out</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="bookList" class="book-grid"></div>
+                    </div>
+
+                </div>
+
+                    <div id="settingsView" class="hidden">
+                        <div class="settings-panel">
+                            <h2><i class="ri-settings-4-line"></i> System Settings</h2>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3>Appearance</h3>
+                                    <p>Switch between Light Mode and Dark Mode.</p>
+                                </div>
+                                <button id="settingsThemeBtn" class="theme-btn" style="width: 50px; border-radius: 8px;">
+                                    <i class="ri-sun-line"></i>
+                                </button>
+                            </div>
+
+                            <div class="setting-item" id="resetSystemSection">
+                                <div class="setting-info">
+                                    <h3>Reset Library</h3>
+                                    <p>Clear all books and local data. This cannot be undone.</p>
+                                </div>
+                                <button class="btn-delete" onclick="resetSystem()">
+                                    <i class="ri-delete-bin-line"></i> Reset System
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
     <div id="historyModal" class="modal" style="display: none;">
@@ -166,6 +217,44 @@
                 <p id="modalBookAuthor" class="modal-author"></p>
                 <div id="modalHistoryList" class="history-list"></div>
                 <button id="clearHistoryBtn" class="btn-clear-history">Clear History</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="borrowModal" class="modal" style="display: none;">
+        <div class="modal-content borrow-modal-size">
+            <div class="modal-header">
+                <h2><i class="ri-user-shared-line"></i> Checkout Book</h2>
+                <span class="close-modal" id="closeBorrowModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; color: var(--text-muted);">
+                    Who is borrowing <strong id="borrowBookTitle" style="color: var(--text-main);">this book</strong>?
+                </p>
+                <div class="form-group">
+                    <label for="borrowerNameInput">Borrower Name</label>
+                    <input type="text" id="borrowerNameInput" placeholder="Enter your name.." autocomplete="off">
+                </div>
+                <div class="modal-actions">
+                    <button id="cancelBorrowBtn" class="btn-secondary">Cancel</button>
+                    <button id="confirmBorrowBtn" class="btn-primary">Confirm Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="guestModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h2>Account Required</h2>
+                <span class="close-modal" id="closeGuestModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <i class="ri-lock-2-line" style="font-size: 3em; color: var(--warning); margin-bottom: 15px; display:block;"></i>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">
+                    Guests cannot check out books. Please login or create an account to perform this action.
+                </p>
+                <button class="btn-primary" onclick="logout()" style="width: 100%;">Go to Login / Sign Up</button>
             </div>
         </div>
     </div>
