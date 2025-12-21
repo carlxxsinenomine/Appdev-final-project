@@ -552,9 +552,9 @@ themeToggleBtn.addEventListener('click', () => {
 const borrowModal = document.getElementById('borrowModal');
 const cancelBtn = document.getElementById('cancelBorrowBtn');
 const confirmBtn = document.getElementById('confirmBorrowBtn');
-const closeIcon = document.querySelector('.close-modal');
 
-// 1. CONFIRM BUTTON
+const closeIcon = document.querySelector('#borrowModal .close-modal');
+
 confirmBtn.onclick = async () => {
     const name = document.getElementById('borrowerNameInput').value;
     
@@ -570,26 +570,29 @@ confirmBtn.onclick = async () => {
     }
 };
 
-// 2. CANCEL BUTTON (This fixes your issue)
 cancelBtn.onclick = () => {
     borrowModal.style.display = 'none';
     pendingBookId = null;
 };
 
-// 3. CLOSE ICON (The 'x' at the top)
-closeIcon.onclick = () => {
-    borrowModal.style.display = 'none';
-    pendingBookId = null;
-};
+if (closeIcon) {
+    closeIcon.onclick = () => {
+        borrowModal.style.display = 'none';
+        pendingBookId = null;
+    };
+}
 
-// 4. CLICK OUTSIDE TO CLOSE
 window.onclick = (event) => {
+    // We check if the click target IS the modal background (borrowModal)
     if (event.target === borrowModal) {
         borrowModal.style.display = 'none';
         pendingBookId = null;
     }
+    const historyModal = document.getElementById('historyModal');
+    if (historyModal && event.target === historyModal) {
+        historyModal.style.display = 'none';
+    }
 };
-
 
 // Add CSS for animations
 const style = document.createElement('style');
