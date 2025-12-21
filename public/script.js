@@ -410,11 +410,16 @@ window.toggleBookStatus = async (id) => {
     if (!book) return;
     
     if (book.status === 'available') {
-        await checkoutBook(id);
+        const borrowerName = prompt("Please enter the borrower's name:");
+
+        if (borrowerName === null || borrowerName.trim() === "") {
+            return; 
+        }
+        await checkoutBook(id, borrowerName.trim());
+
     } else {
         await checkinBook(id);
     }
-    
     await fetchBooks();
     renderBooks();
     updateStats();
