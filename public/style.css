@@ -296,41 +296,46 @@ body.light-mode .btn-fav i { color: #ff4545; }
     border: none; color: white; font-weight: 600; margin-top: 20px; cursor: pointer;
 }
 
-.borrow-modal-size {
-    max-width: 450px; 
-    height: auto;
-    max-height: 90vh;
-}
-
-.modal-actions {
+#borrowModal .modal-actions {
     display: flex;
-    gap: 15px;
+    gap: 15px;      
     margin-top: 25px;
 }
 
-.modal-actions button {
-    flex: 1; 
-    margin-top: 0; 
+#borrowModal button {
+    flex: 1;                
+    padding: 12px 20px;        
+    border-radius: 10px;        
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: capitalize;
 }
 
-.btn-secondary {
-    background-color: var(--bg-input);
-    color: var(--text-muted);
-    border: var(--border);
+#cancelBorrowBtn {
+    background-color: var(--bg-input) !important;
+    color: var(--text-muted) !important;
+    border: 1px solid transparent !important;
 }
 
-.btn-secondary:hover {
-    background-color: var(--bg-body);
-    color: var(--text-main);
-    border-color: var(--text-muted);
+#cancelBorrowBtn:hover {
+    background-color: var(--bg-body) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border) !important;
 }
 
-.btn-primary {
-    background-color: var(--primary);
-    color: white;
+#confirmBorrowBtn {
+    background-color: var(--success) !important; 
+    color: white !important;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
 }
-.btn-primary:hover {
-    background-color: var(--primary-hover);
+
+#confirmBorrowBtn:hover {
+    background-color: #059669 !important;
+    transform: translateY(-2px);         
+    box-shadow: 0 6px 8px rgba(16, 185, 129, 0.3);
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
