@@ -23,8 +23,7 @@ const bookSchema = new mongoose.Schema({
         default: 'available'
     },
     checkedOutBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: String,
+        type: String, 
         default: null
     },
     checkedOutByUsername: {
@@ -41,7 +40,7 @@ const bookSchema = new mongoose.Schema({
     },
     borrowHistory: [{
         borrower: String,
-        borrowerId: mongoose.Schema.Types.ObjectId,
+        borrowerId: { type: String, default: null },
         checkoutDate: String,
         returnDate: String
     }],

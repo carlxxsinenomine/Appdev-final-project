@@ -76,11 +76,9 @@ async function addBookToDB(bookData) {
 
 async function checkoutBook(id) {
     try {
-        const borrower = currentUser ? currentUser.username : 'Guest';
         const response = await fetch(`${API_BASE_URL}/books/${id}/checkout`, {
             method: 'PATCH',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ borrower: borrowerName })
+            headers: getAuthHeaders()
         });
         if (!response.ok) {
             const error = await response.json();
