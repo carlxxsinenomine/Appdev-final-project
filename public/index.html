@@ -26,10 +26,15 @@
                     </select>
                 </div>
 
+                <div id="usernameSection" class="form-group hidden">
+                    <label>Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter username">
+                </div>
+
                 <div id="passwordSection" class="form-group hidden">
                     <label>Password</label>
                     <input type="password" id="loginPassword" placeholder="Enter password">
-                    <p class="error-msg hidden" id="loginError">Incorrect password</p>
+                    <p class="error-msg hidden" id="loginError">Invalid credentials</p>
                 </div>
 
                 <button id="loginBtn" class="btn-primary full-width">Login</button>
@@ -37,6 +42,10 @@
                 <div class="divider"><span>OR</span></div>
                 
                 <button id="guestLoginBtn" class="btn-secondary full-width">Continue as Guest</button>
+                
+                <button id="createAccountBtn" class="btn-create-account full-width">
+                    <i class="ri-user-add-line"></i> Create New Account
+                </button>
             </div>
         </div>
     </div>
@@ -206,6 +215,35 @@
         </div>
     </div>
 
+    <!-- Registration Modal -->
+    <div id="registerModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="ri-user-add-line"></i> Create New Account</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="registerUsername" placeholder="Choose a username" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" placeholder="Minimum 6 characters">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="Re-enter password">
+                </div>
+                <p class="error-msg hidden" id="registerError">Error message</p>
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button id="cancelRegisterBtn" class="btn-secondary" style="flex: 1;">Cancel</button>
+                    <button id="confirmRegisterBtn" class="btn-primary" style="flex: 1;">Create Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="historyModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -217,28 +255,6 @@
                 <p id="modalBookAuthor" class="modal-author"></p>
                 <div id="modalHistoryList" class="history-list"></div>
                 <button id="clearHistoryBtn" class="btn-clear-history">Clear History</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="borrowModal" class="modal" style="display: none;">
-        <div class="modal-content borrow-modal-size">
-            <div class="modal-header">
-                <h2><i class="ri-user-shared-line"></i> Checkout Book</h2>
-                <span class="close-modal" id="closeBorrowModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p style="margin-bottom: 15px; color: var(--text-muted);">
-                    Who is borrowing <strong id="borrowBookTitle" style="color: var(--text-main);">this book</strong>?
-                </p>
-                <div class="form-group">
-                    <label for="borrowerNameInput">Borrower Name</label>
-                    <input type="text" id="borrowerNameInput" placeholder="Enter your name.." autocomplete="off">
-                </div>
-                <div class="modal-actions">
-                    <button id="cancelBorrowBtn" class="btn-secondary">Cancel</button>
-                    <button id="confirmBorrowBtn" class="btn-primary">Confirm Checkout</button>
-                </div>
             </div>
         </div>
     </div>
