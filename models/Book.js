@@ -24,7 +24,7 @@ const bookSchema = new mongoose.Schema({
     },
     checkedOutBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: String,
         default: null
     },
     checkedOutByUsername: {
