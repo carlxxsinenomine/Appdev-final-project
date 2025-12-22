@@ -22,11 +22,12 @@ const bookSchema = new mongoose.Schema({
         enum: ['available', 'checked-out'],
         default: 'available'
     },
-    isFavorite: {
-        type: Boolean,
-        default: false
-    },
     checkedOutBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    checkedOutByUsername: {
         type: String,
         default: null
     },
@@ -34,15 +35,20 @@ const bookSchema = new mongoose.Schema({
         type: String,
         default: null
     },
-    addedDate: {
-        type: String,
-        default: () => new Date().toLocaleDateString()
+    isFavorite: {
+        type: Boolean,
+        default: false
     },
     borrowHistory: [{
         borrower: String,
+        borrowerId: mongoose.Schema.Types.ObjectId,
         checkoutDate: String,
         returnDate: String
-    }]
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
 });
 
 module.exports = mongoose.model('Book', bookSchema);

@@ -39,7 +39,7 @@ body {
     color: var(--text-main);
     height: 100vh;
     overflow: hidden;
-    transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+    transition: background-color 0.3s, color 0.3s;
 }
 
 /* Utility */
@@ -199,6 +199,7 @@ button[type="submit"]:hover { background-color: var(--primary-hover); transform:
 .book-title { font-size: 1.2em; font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
 .book-author { color: var(--primary); font-size: 0.95em; font-weight: 500; }
 .book-isbn { color: var(--text-muted); font-size: 0.8em; font-family: monospace; margin-top: 5px; }
+.book-borrower { color: var(--text-muted); font-size: 0.85em; margin-top: 10px; font-style: italic; }
 
 .status-badge {
     font-size: 10px; padding: 4px 10px; border-radius: 20px;
@@ -268,7 +269,7 @@ body.light-mode .btn-fav i { color: #ff4545; }
 .modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
-    display: flex; justify-content: center; align-items: center; z-index: 1000;
+    display: flex; justify-content: center; align-items: center; z-index: 3000;
 }
 .modal-content {
     background: var(--bg-card); border-radius: 20px; width: 90%; max-width: 600px;
@@ -294,48 +295,6 @@ body.light-mode .btn-fav i { color: #ff4545; }
 .btn-clear-history {
     background-color: var(--danger); width: 100%; padding: 12px; border-radius: 10px;
     border: none; color: white; font-weight: 600; margin-top: 20px; cursor: pointer;
-}
-
-#borrowModal .modal-actions {
-    display: flex;
-    gap: 15px;      
-    margin-top: 25px;
-}
-
-#borrowModal button {
-    flex: 1;                
-    padding: 12px 20px;        
-    border-radius: 10px;        
-    font-weight: 600;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-transform: capitalize;
-}
-
-#cancelBorrowBtn {
-    background-color: var(--bg-input) !important;
-    color: var(--text-muted) !important;
-    border: 1px solid transparent !important;
-}
-
-#cancelBorrowBtn:hover {
-    background-color: var(--bg-body) !important;
-    color: var(--text-main) !important;
-    border-color: var(--border) !important;
-}
-
-#confirmBorrowBtn {
-    background-color: var(--success) !important; 
-    color: white !important;
-    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
-}
-
-#confirmBorrowBtn:hover {
-    background-color: #059669 !important;
-    transform: translateY(-2px);         
-    box-shadow: 0 6px 8px rgba(16, 185, 129, 0.3);
 }
 
 /* === LOGIN SCREEN STYLES === */
@@ -427,18 +386,19 @@ body.light-mode .btn-fav i { color: #ff4545; }
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 8px;
 }
 
 /* Primary Button (Blue - Matches 'Add Book') */
 .btn-primary {
     background-color: var(--primary);
     color: white;
-    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2); /* Subtle shadow */
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
-    transform: translateY(-2px); /* Lift effect */
+    transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
 }
 
@@ -452,20 +412,44 @@ body.light-mode .btn-fav i { color: #ff4545; }
 .btn-secondary:hover {
     background-color: var(--bg-body);
     color: var(--text-main);
-    border-color: var(--border); /* Adds border on hover for contrast */
+    border-color: var(--border);
     transform: translateY(-2px);
+}
+
+/* Create Account Button - Purple/Gradient */
+.btn-create-account {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+}
+
+.btn-create-account:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* === RECENT BOOKS WIDGET === */
 
 .recent-section {
-    /* Takes up the remaining space in the grid */
     min-width: 0; 
 }
 
 .recent-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns x 2 rows = 4 items */
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
 }
 
