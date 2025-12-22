@@ -362,8 +362,6 @@ async function initData() {
     renderBooks();
     renderRecentWidget();
     updateStats();
-    setupNavigation();
-    setupTheme();
 }
 
 // === Navigation & Views ===
@@ -698,4 +696,6 @@ function renderRecentWidget() {
     });
 }
 
+setupNavigation();
+setupTheme();
 initAuth();
